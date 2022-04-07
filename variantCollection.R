@@ -5,8 +5,7 @@
 
 library(magrittr)
 library(NGSannotation)
-library(dplyr)
-
+library(tidyverse)
 ### and export metadata at once
 library(optparse)
 
