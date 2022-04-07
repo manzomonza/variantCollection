@@ -47,7 +47,7 @@ metadataCollection <- function(filepath){
     dplyr::filter(grepl("##", X1)) %>%
     dplyr::mutate(X1 = gsub("##", "", X1))
   colnames(metadat) = "IR_Workflow_Metainformation"
-  metadat = metadat |> tidyr::separate(col = IR_Workflow_Metainformation, into = c("parameter", "value"), sep = "=") |>
+  metadat = metadat %>% tidyr::separate(col = IR_Workflow_Metainformation, into = c("parameter", "value"), sep = "=") %>%
     tidyr::pivot_wider(names_from = parameter, values_from = value)
   return()
 }
