@@ -35,6 +35,7 @@ aggregator <- function(filepath){
       output_tables = make_output_tables(ir_output)
       metadata_foi = metadataCollection(filepath)
       output_tables = lapply(output_tables, function(x) dplyr::bind_cols(metadata_foi, x))
+      print(output_tables)
       }
   return(output_tables)
     }
@@ -49,15 +50,11 @@ metadataCollection <- function(filepath){
   colnames(metadat) = "IR_Workflow_Metainformation"
   metadat = metadat %>% tidyr::separate(col = IR_Workflow_Metainformation, into = c("parameter", "value"), sep = "=") %>%
     tidyr::pivot_wider(names_from = parameter, values_from = value)
-  return()
+  return(metadat)
 }
 
 
 aggregator(opt$file)
-
-
-
-
 
 
 
