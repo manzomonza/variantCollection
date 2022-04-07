@@ -28,7 +28,7 @@ aggregator <- function(filepath){
         metadata_foi = precisionInfo(info_csv)
       }else{
         filename = rev(stringr::str_split(dirname(filepath), pattern = "/", simplify = TRUE))[1]
-        metadata_foi = tibble(analysisName =  metadata_foi,
+        metadata_foi = tibble(analysisName =  filename,
                       analysisDate = NA,
                       exportDate = NA,
                       workflowName = NA)   
