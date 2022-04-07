@@ -35,7 +35,6 @@ aggregator <- function(filepath){
       output_tables = make_output_tables(ir_output)
       metadata_foi = metadataCollection(filepath)
       output_tables = lapply(output_tables, function(x) dplyr::bind_cols(metadata_foi, x))
-      print(output_tables)
       }
   return(output_tables)
     }
@@ -54,7 +53,23 @@ metadataCollection <- function(filepath){
 }
 
 
-aggregator(opt$file)
+metavariants = aggregator(opt$file)
+
+if(nrow(metavariants$snv) > 0){
+  readr::write_tsv(metavariants$snv, "Sample_centric_SNV.tsv", append = TRUE)
+}
+
+if(nrow(metavariants$cnv) > 0){
+  readr::write_tsv(metavariants$cnv, "Sample_centric_CNV.tsv", append = TRUE)
+}
+
+if(nrow(metavariants$filtered) > 0){
+  readr::write_tsv(metavariants$cnv, "Sample_centric_FILTERED.tsv", append = TRUE)
+}
+
+
+
+readr::write_tsv(metavariants$filtered, "Sample_centric_FILTERED.tsv", append = TRUE)
 
 
 
