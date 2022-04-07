@@ -5,6 +5,7 @@
 
 library(magrittr)
 library(NGSannotation)
+library(dplyr)
 
 ### and export metadata at once
 library(optparse)
