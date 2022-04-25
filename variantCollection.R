@@ -8,6 +8,7 @@ library(NGSannotation)
 library(tidyverse)
 ### and export metadata at once
 library(optparse)
+library(GenomicRanges)
 
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL,
@@ -17,7 +18,31 @@ opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser)
 
 print(opt$file)
-### 
+########## 
+
+
+#### OVERWRITE NGS ANNOTATION function do not need snv exon annotation
+read_rename_select_precision_snv <- function(filepath){
+  frequency_col_mult100 = readIn(filepath) %>%
+    mult100()
+  snvindelx <- readIn(filepath) %>%
+    addMissingCols() %>%
+    renameCol() %>%
+    snvParse() %>%
+    dplyr::ungroup() %>%
+    dplyr::select(-transcript) %>%
+    dplyr::filter(grepl("PRESENT", call)) %>%
+    dplyr::mutate(multiply_freq_by_100 = frequency_col_mult100) %>%
+    dplyr::mutate(percent_frequency = as.numeric(percent_frequency))
+  
+  snvindelx <- exonAnnot(snvindelx) %>%
+    dplyr::select(type, gene, coding, amino_acid_change, percent_frequency, location,
+                  locus, transcript, exon, copy_number, cnv_confidence, IR_clinvar, multiply_freq_by_100) 
+  return(snvindelx)
+}
+
+######## 
+
 aggregator <- function(filepath){
   if(nrow(readIn(filepath) > 0)){
     if(grepl("Snvindel.tsv", filepath, ignore.case = FALSE)){
@@ -28,7 +53,7 @@ aggregator <- function(filepath){
         metadata_foi = precisionInfo(info_csv)
       }else{
         filename = rev(stringr::str_split(dirname(filepath), pattern = "/", simplify = TRUE))[1]
-        metadata_foi = tibble(analysisName =  filename,
+        metadata_foi = tibble::tibble(analysisName =  filename,
                       analysisDate = NA,
                       exportDate = NA,
                       workflowName = NA)   
@@ -76,6 +101,14 @@ precisionInfo <- function(filepath){
 }
 
 metavariants = aggregator(opt$file)
+
+
+
+exon.gr <- ""
+metavariants = aggregator("/Volumes/GoogleDrive/.shortcut-targets-by-id/1yuFiN1dlcUgo1_ELdNVXegTfB61oDv8G/Patientendaten/2022/W0501-W0550/W0510_PrecisionDNA/Snvindel.tsv")
+
+precisionInfo()
+
 
 
 if(nrow(metavariants$snv) > 0){
