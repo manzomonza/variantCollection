@@ -104,11 +104,11 @@ metavariants = aggregator(opt$file)
 
 
 
-exon.gr <- ""
-metavariants = aggregator("/Volumes/GoogleDrive/.shortcut-targets-by-id/1yuFiN1dlcUgo1_ELdNVXegTfB61oDv8G/Patientendaten/2022/W0501-W0550/W0510_PrecisionDNA/Snvindel.tsv")
-
-precisionInfo()
-
+# exon.gr <- ""
+# metavariants = aggregator("/Volumes/GoogleDrive/.shortcut-targets-by-id/1yuFiN1dlcUgo1_ELdNVXegTfB61oDv8G/Patientendaten/2022/W0501-W0550/W0510_PrecisionDNA/Snvindel.tsv")
+# 
+# precisionInfo()
+# 
 
 
 if(nrow(metavariants$snv) > 0){
