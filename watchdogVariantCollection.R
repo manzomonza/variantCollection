@@ -74,7 +74,10 @@ variantCollection <- function(watchdogDir){
         info = precisionInfo(infopath)
       }else{
         #print('infopath does not exist')
-        info = data.frame(workflowName = "Precision")
+        info = data.frame(workflowName = "Precision",
+                          analysisName = dirpath,
+                          exportDate = NA,
+                          analysisDate = NA)
       }
     }else{
       file_list$info = grep("Info.csv", files, value = TRUE)
