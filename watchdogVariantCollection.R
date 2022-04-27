@@ -107,7 +107,7 @@ filtered_cols <- c("amino_acid_change","analysisDate","analysisName","cds_region
                    "percent_frequency","transcript","type","workflowName")
 
 ## Function call
-metavariants <- variantCollection(opt$watchDir)
+metavariants <- variantCollection(opt$watchdir)
 
 ## Select only columns shared by all panels (April 2022)
 metavariants$snv <- metavariants$snv %>% dplyr::select(all_of(snv_cols))
