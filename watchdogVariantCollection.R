@@ -74,7 +74,10 @@ variantCollection <- function(watchdogDir){
         info = precisionInfo(infopath)
       }else{
         #print('infopath does not exist')
-        info = data.frame(workflowName = "Precision")
+        info = data.frame(workflowName = "Precision",
+                          analysisName = dirpath,
+                          exportDate = NA,
+                          analysisDate = NA)
       }
     }else{
       file_list$info = grep("Info.csv", files, value = TRUE)
@@ -107,7 +110,7 @@ filtered_cols <- c("amino_acid_change","analysisDate","analysisName","cds_region
                    "percent_frequency","transcript","type","workflowName")
 
 ## Function call
-metavariants <- variantCollection(opt$watchDir)
+metavariants <- variantCollection(opt$watchdir)
 
 ## Select only columns shared by all panels (April 2022)
 metavariants$snv <- metavariants$snv %>% dplyr::select(all_of(snv_cols))
