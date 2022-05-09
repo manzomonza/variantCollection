@@ -1,88 +1,42 @@
-#/usr/bin/R
-### Scope
-### Use NGSannotation methods to read in files
-### and export metadata at once
-
+# # watchdog output based variant aggregation:
+# # Strategy becomes to extract as much as possible from watchdog folder, including metadata. Known exceptions are:
+# # Precision panels:
+# #   - will need to be checked one directory above watchdog
+# #   - maybe does not have info.csv --> Extract filename from path, rest metadata NA
+# # State: April 2022
 library(magrittr)
-library(NGSannotation)
-library(tidyverse)
-### and export metadata at once
 library(optparse)
-library(GenomicRanges)
 
+
+### OPT Parse
 option_list = list(
-  make_option(c("-f", "--file"), type="character", default=NULL,
-              help="dataset file name", metavar="character"))
+  make_option(c("-d", "--watchdir"), type="character", default=NULL,
+              help="watchdog directory", metavar="character"))
 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser)
 
-print(opt$file)
-########## 
+print(opt$watchdir)
 
 
-#### OVERWRITE NGS ANNOTATION function do not need snv exon annotation
-read_rename_select_precision_snv <- function(filepath){
-  frequency_col_mult100 = readIn(filepath) %>%
-    mult100()
-  snvindelx <- readIn(filepath) %>%
-    addMissingCols() %>%
-    renameCol() %>%
-    snvParse() %>%
-    dplyr::ungroup() %>%
-    dplyr::select(-transcript) %>%
-    dplyr::filter(grepl("PRESENT", call)) %>%
-    dplyr::mutate(multiply_freq_by_100 = frequency_col_mult100) %>%
-    dplyr::mutate(percent_frequency = as.numeric(percent_frequency))
-  
-  snvindelx <- exonAnnot(snvindelx) %>%
-    dplyr::select(type, gene, coding, amino_acid_change, percent_frequency, location,
-                  locus, transcript, exon, copy_number, cnv_confidence, IR_clinvar, multiply_freq_by_100) 
-  return(snvindelx)
+readInfo <- function(infopath){
+  info = readr::read_csv(infopath) %>%
+    tidyr::separate(col = 1,
+                    into = c("No.", "metadata"), sep = "^\\d{1,} ") %>%
+    tidyr::separate(col = "metadata",
+                    into = c("metadata", "value"), sep = "=") %>%
+    dplyr::select(-No.) %>%
+    dplyr::mutate(value = stringr::str_remove_all(string = value, pattern = "NA| ")) %>%
+    tidyr::pivot_wider(names_from = metadata,
+                       values_from = value)
+  if('chromosome' %in% colnames(info)){
+    info = info %>% dplyr::rename(Chr = chromosome)
+    
+  }
+  return(info)
 }
 
-######## 
 
-aggregator <- function(filepath){
-  if(nrow(readIn(filepath) > 0)){
-    if(grepl("Snvindel.tsv", filepath, ignore.case = FALSE)){
-      cnv_filepath =  paste0(dirname(filepath),"/Cnv.tsv")
-      snv_filepath =  paste0(dirname(filepath),"/Snvindel.tsv")
-      info_csv = paste0(dirname(filepath),"/Info.csv")
-      if(file.exists(info_csv)){
-        metadata_foi = precisionInfo(info_csv)
-      }else{
-        filename = rev(stringr::str_split(dirname(filepath), pattern = "/", simplify = TRUE))[1]
-        metadata_foi = tibble::tibble(analysisName =  filename,
-                      analysisDate = NA,
-                      exportDate = NA,
-                      workflowName = NA)   
-      }
-      print(cnv_filepath)
-      print(snv_filepath)
-      cnv = readIn(cnv_filepath)
-      snv = read_rename_select_precision_snv(snv_filepath)
-      output_tables <- make_output_tables_precision(snv_indel = snv, cnv = cnv)
-      output_tables = lapply(output_tables, function(x) dplyr::bind_cols(metadata_foi, x))
-      
-    }else{
-      ir_output = read_rename_select(filepath)
-      output_tables = make_output_tables(ir_output)
-      metadata_foi = metadataCollection(filepath)
-      output_tables = lapply(output_tables, function(x) dplyr::bind_cols(metadata_foi, x))
-      }
-  return(output_tables)
-    }
-}
-metadataCollection <- function(filepath){
-  metadat = readr::read_tsv(filepath, col_names = F) %>%
-    dplyr::filter(grepl("##", X1)) %>%
-    dplyr::mutate(X1 = gsub("##", "", X1))
-  colnames(metadat) = "IR_Workflow_Metainformation"
-  metadat = metadat %>% tidyr::separate(col = IR_Workflow_Metainformation, into = c("parameter", "value"), sep = "=") %>%
-    tidyr::pivot_wider(names_from = parameter, values_from = value)
-  return(metadat)
-}
 precisionInfo <- function(filepath){
   info = readr::read_csv(filepath, col_names = TRUE) %>%
     tidyr::separate(col = `Software Version Details`,
@@ -100,34 +54,90 @@ precisionInfo <- function(filepath){
   return(info)
 }
 
-exon.gr <- readr::read_tsv("/home/ionadmin/ngs_variant_annotation/variantAnnotation/IR_references/Hg19_refseq_v95_canon_exonInfo.tsv") %>% as(., "GRanges")
-metavariants = aggregator(opt$file)
 
+variantCollection <- function(watchdogDir){
+  if(dir.exists(watchdogDir)){
+    #print("dir exists")
+    files <- list.files(path = watchdogDir, full.names = TRUE)
+    # grep different filepaths
+    file_list <- list(cnv = grep("prep_cnv", files, value = TRUE),
+                      snv = grep("prep_snv", files, value = TRUE),
+                      filtered = grep("prep_filtered", files, value = TRUE))
+    dirpath <- rev(stringr::str_split(dirname(watchdogDir), pattern = "/", simplify = TRUE))[1]
+    
+    
+    if(grepl("Snvindel_watchdog", watchdogDir)){
+      #print("Dir is from precision")
+      infopath = paste0(dirname(watchdogDir), "/Info.csv")
+      if(file.exists(infopath)){
+        #print('infopath exists')
+        info = precisionInfo(infopath)
+      }else{
+        #print('infopath does not exist')
+        info = data.frame(workflowName = "Precision",
+                          analysisName = dirpath,
+                          exportDate = NA,
+                          analysisDate = NA)
+      }
+    }else{
+      file_list$info = grep("Info.csv", files, value = TRUE)
+      info = readInfo(file_list$info)
+    }
+    
+    info$dirpath = dirpath
+    #print('dirpath')
+    cnv = dplyr::bind_cols(readr::read_tsv(file_list$cnv), info) %>% dplyr::mutate(across(.cols = everything(), .fns = as.character))
+    #print('cnv pass')
+    snv = dplyr::bind_cols(readr::read_tsv(file_list$snv), info) %>% dplyr::mutate(across(.cols = everything(), .fns = as.character))
+    filtered = dplyr::bind_cols(readr::read_tsv(file_list$filtered), info) %>% dplyr::mutate(across(.cols = everything(), .fns = as.character))
+    return(list(snv = snv,
+                cnv = cnv,
+                filtered = filtered))
+  }
+}
 
+snv_cols <- c("amino_acid_change","analysisDate","analysisName","cds_region","cds_region_No","clinvar_ready_AA",
+              "coding","dirpath","exon","exportDate","gene","IR_clinvar","location","locus","multiply_freq_by_100",
+              "one_AA","percent_frequency","three_AA","transcript","type","workflowName")
+
+cnv_cols <- c("analysisDate","analysisName","chromosome","copy_number","dirpath","exportDate",
+              "five","fivePercent_conf","gene","locus","ninetyfive","ninetyfivePercent_conf", 
+              "workflowName")
+
+filtered_cols <- c("amino_acid_change","analysisDate","analysisName","cds_region","cds_region_No",
+                   "cnv_confidence", "coding", "copy_number", "dirpath",
+                   "exon", "exportDate", "gene","location","locus","multiply_freq_by_100",
+                   "percent_frequency","transcript","type","workflowName")
+
+## Function call
+metavariants <- variantCollection(opt$watchdir)
+
+## Select only columns shared by all panels (April 2022)
+metavariants$snv <- metavariants$snv %>% dplyr::select(all_of(snv_cols))
+metavariants$cnv <- metavariants$cnv %>% dplyr::select(all_of(cnv_cols))
+metavariants$filtered <- metavariants$filtered %>% dplyr::select(all_of(filtered_cols))
 
 
 if(nrow(metavariants$snv) > 0){
-  if(file.exists("Sample_centric_SNV.tsv")){
-    readr::write_tsv(metavariants$snv, "Sample_centric_SNV.tsv", append = TRUE, col_names = TRUE)
+  if(file.exists("/home/ionadmin/ngs_variant_annotation/variantAnnotation/variantCollection/Sample_centric_SNV.tsv")){
+    readr::write_tsv(metavariants$snv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_SNV.tsv", append = TRUE, col_names = TRUE)
   }else{
-    readr::write_tsv(metavariants$snv, "Sample_centric_SNV.tsv", append = FALSE, col_names = TRUE)
+    readr::write_tsv(metavariants$snv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_SNV.tsv", append = FALSE, col_names = TRUE)
   }
 }
 
 if(nrow(metavariants$cnv) > 0){
-  if(file.exists("Sample_centric_CNV.tsv")){
-    readr::write_tsv(metavariants$cnv, "Sample_centric_CNV.tsv", append = TRUE, col_names = TRUE)
+  if(file.exists("/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv")){
+    readr::write_tsv(metavariants$cnv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv", append = TRUE, col_names = TRUE)
   }else{
-    readr::write_tsv(metavariants$cnv, "Sample_centric_CNV.tsv", append = FALSE, col_names = TRUE)
+    readr::write_tsv(metavariants$cnv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv", append = FALSE, col_names = TRUE)
   }
 }
 
 if(nrow(metavariants$filtered) > 0){
-  if(file.exists("Sample_centric_FILTERED.tsv")){
-    readr::write_tsv(metavariants$filtered, "Sample_centric_FILTERED.tsv", append = TRUE, col_names = TRUE)
+  if(file.exists("/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv")){
+    readr::write_tsv(metavariants$filtered, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv", append = TRUE, col_names = TRUE)
   }else{
-    readr::write_tsv(metavariants$filtered, "Sample_centric_FILTERED.tsv", append = FALSE, col_names = TRUE)
+    readr::write_tsv(metavariants$filtered, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv", append = FALSE, col_names = TRUE)
   }
-}
-
-
+}`
