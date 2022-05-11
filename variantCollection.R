@@ -8,6 +8,11 @@ library(magrittr)
 library(optparse)
 
 
+filteredFile <- "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv"
+snvFile <- "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_SNV.tsv"
+cnvFile <- "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv"
+
+
 ### OPT Parse
 option_list = list(
   make_option(c("-d", "--watchdir"), type="character", default=NULL,
@@ -58,12 +63,17 @@ precisionInfo <- function(filepath){
 variantCollection <- function(watchdogDir){
   if(dir.exists(watchdogDir)){
     #print("dir exists")
-    files <- list.files(path = watchdogDir, full.names = TRUE)
+    files = list.files(path = watchdogDir, full.names = TRUE)
     # grep different filepaths
-    file_list <- list(cnv = grep("prep_cnv", files, value = TRUE),
-                      snv = grep("prep_snv", files, value = TRUE),
-                      filtered = grep("prep_filtered", files, value = TRUE))
-    dirpath <- rev(stringr::str_split(dirname(watchdogDir), pattern = "/", simplify = TRUE))[1]
+    
+    cnv = grep("prep_cnv", files, value = TRUE)
+    snv = grep("prep_snv", files, value = TRUE)
+    filtered = grep("prep_filtered", files, value = TRUE)
+    
+    file_list = list(cnv = cnv,
+                      snv = snv,
+                      filtered = filtered)
+    dirpath = rev(stringr::str_split(dirname(watchdogDir), pattern = "/", simplify = TRUE))[1]
     
     
     if(grepl("Snvindel_watchdog", watchdogDir)){
@@ -119,25 +129,25 @@ metavariants$filtered <- metavariants$filtered %>% dplyr::select(all_of(filtered
 
 
 if(nrow(metavariants$snv) > 0){
-  if(file.exists("/home/ionadmin/ngs_variant_annotation/variantAnnotation/variantCollection/Sample_centric_SNV.tsv")){
-    readr::write_tsv(metavariants$snv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_SNV.tsv", append = TRUE, col_names = TRUE)
+  if(file.exists(snvFile)){
+    readr::write_tsv(metavariants$snv, snvFile, append = TRUE, col_names = TRUE)
   }else{
-    readr::write_tsv(metavariants$snv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_SNV.tsv", append = FALSE, col_names = TRUE)
+    readr::write_tsv(metavariants$snv, snvFile, append = FALSE, col_names = TRUE)
   }
 }
 
 if(nrow(metavariants$cnv) > 0){
-  if(file.exists("/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv")){
-    readr::write_tsv(metavariants$cnv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv", append = TRUE, col_names = TRUE)
+  if(file.exists(cnvFile)){
+    readr::write_tsv(metavariants$cnv, cnvFile, append = TRUE, col_names = TRUE)
   }else{
-    readr::write_tsv(metavariants$cnv, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv", append = FALSE, col_names = TRUE)
+    readr::write_tsv(metavariants$cnv, cnvFile, append = FALSE, col_names = TRUE)
   }
 }
 
 if(nrow(metavariants$filtered) > 0){
-  if(file.exists("/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv")){
-    readr::write_tsv(metavariants$filtered, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv", append = TRUE, col_names = TRUE)
+  if(file.exists(filteredFile)){
+    readr::write_tsv(metavariants$filtered, filteredFile, append = TRUE, col_names = TRUE)
   }else{
-    readr::write_tsv(metavariants$filtered, "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv", append = FALSE, col_names = TRUE)
+    readr::write_tsv(metavariants$filtered, filteredFile, append = FALSE, col_names = TRUE)
   }
 }`
