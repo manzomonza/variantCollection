@@ -29,8 +29,6 @@ snv_cols <- c("amino_acid_change","analysisDate","analysisName","cds_region","cd
               "coding","dirpath","exon","exportDate","gene","IR_clinvar","location","locus","multiply_freq_by_100",
               "one_AA","percent_frequency","three_AA","transcript","type","workflowName")
 
-
-
 ### OPT Parse
 option_list = list(
   make_option(c("-d", "--watchdir"), type="character", default=NULL,
