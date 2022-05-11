@@ -5,6 +5,8 @@
 #   - maybe does not have info.csv --> Extract filename from path, rest metadata NA
 # State: April 2022
 
+## Change of strategy: Use watchdog folders instead
+
 library(magrittr)
 library(optparse)
 
