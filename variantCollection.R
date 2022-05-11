@@ -3,6 +3,8 @@
 ### Use NGSannotation methods to read in files
 ### and export metadata at once
 
+## Change of strategy: Use watchdog folders instead
+
 library(magrittr)
 library(NGSannotation)
 library(tidyverse)
@@ -103,12 +105,19 @@ precisionInfo <- function(filepath){
 metavariants = aggregator(opt$file)
 
 
-
-# exon.gr <- ""
 # metavariants = aggregator("/Volumes/GoogleDrive/.shortcut-targets-by-id/1yuFiN1dlcUgo1_ELdNVXegTfB61oDv8G/Patientendaten/2022/W0501-W0550/W0510_PrecisionDNA/Snvindel.tsv")
 # 
-# precisionInfo()
 # 
+# test_path = "/Volumes/GoogleDrive/.shortcut-targets-by-id/1yuFiN1dlcUgo1_ELdNVXegTfB61oDv8G/Patientendaten/2021/E3601_E3650/E3601_GNASddPCR_Precision/Snvindel_watchdog"
+# 
+# list.files(path = test_path)
+# # watchdog output based variant aggregation:
+# # Strategy becomes to extract as much as possible from watchdog folder, including metadata. Known exceptions are:
+# # Precision panels:
+# #   - will need to be checked one directory above watchdog
+# #   - maybe does not have info.csv --> Extract filename from path, rest metadata NA
+# 
+
 
 
 if(nrow(metavariants$snv) > 0){
