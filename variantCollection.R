@@ -9,11 +9,12 @@
 
 library(magrittr)
 library(optparse)
+library(variantCollection)
 
 
-filteredFile <- "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_FILTERED.tsv"
-snvFile <- "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_SNV.tsv"
-cnvFile <- "/home/ionadmin/ngs_variant_annotation/variantCollection/Sample_centric_CNV.tsv"
+filteredFile <- "/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_FILTERED.tsv"
+snvFile <- "/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_SNV.tsv"
+cnvFile <- "/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_CNV.tsv"
 
 
 ### To be selected columns
@@ -21,6 +22,7 @@ filtered_cols <- c("amino_acid_change","analysisDate","analysisName","cds_region
                    "cnv_confidence", "coding", "copy_number", "dirpath",
                    "exon", "exportDate", "gene","location","locus","multiply_freq_by_100",
                    "percent_frequency","transcript","type","workflowName")
+
 cnv_cols <- c("analysisDate","analysisName","chromosome","copy_number","dirpath","exportDate",
               "five","fivePercent_conf","gene","locus","ninetyfive","ninetyfivePercent_conf", 
               "workflowName")
