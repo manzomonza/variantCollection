@@ -18,7 +18,7 @@ snv_table = snv_table %>% dplyr::distinct()
 ## CNV
 cnv_table = cnv_table %>%
   dplyr::rename( gene_symbol = gene) %>%
-  dplyr::select(gene_symbol, locus, copy_number, contains("Percent"), workflowName, analysisDate)
+  dplyr::select(gene_symbol, locus, copy_number, contains("Percent"),analysisName, analysisDate, workflowName)
 
 cnv_table$fivePercent_conf = as.numeric(cnv_table$fivePercent_conf)
 cnv_table$ninetyfivePercent_conf = as.numeric(cnv_table$ninetyfivePercent_conf)
