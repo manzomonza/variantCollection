@@ -1,5 +1,8 @@
 library(shiny)
 library(DT)
+
+source("SampleCentricTables_paths.R")
+
 ## SNV
 snv_table = snv_table %>% 
   dplyr::filter(multiply_freq_by_100 != "multiply_freq_by_100")
