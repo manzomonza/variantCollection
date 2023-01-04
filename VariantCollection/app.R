@@ -1,7 +1,6 @@
 library(shiny)
 library(DT)
 ## SNV
-snv_table = readr::read_tsv('/Users/manzo/Downloads/Sample_centric_SNV.tsv')
 snv_table = snv_table %>% 
   dplyr::filter(multiply_freq_by_100 != "multiply_freq_by_100")
 snv_table$percent_frequency = as.numeric(snv_table$percent_frequency)
@@ -14,10 +13,9 @@ snv_table = snv_table %>% dplyr::rename(one_AminoAcid_change = one_AA,
 snv_table = snv_table %>% dplyr::distinct()
 
 ## CNV
-cnv_table = readr::read_tsv('/Users/manzo/Downloads/Sample_centric_CNV.tsv')  %>% dplyr::distinct()
 cnv_table = cnv_table %>%
   dplyr::rename( gene_symbol = gene) %>%
-  dplyr::select(gene_symbol, locus, copy_number,contains("Percent"), workflowName, analysisDate)
+  dplyr::select(gene_symbol, locus, copy_number, contains("Percent"), workflowName, analysisDate)
 
 cnv_table$fivePercent_conf = as.numeric(cnv_table$fivePercent_conf)
 cnv_table$ninetyfivePercent_conf = as.numeric(cnv_table$ninetyfivePercent_conf)
@@ -26,8 +24,6 @@ cnv_table = cnv_table %>% dplyr::filter(!is.na(ninetyfivePercent_conf) & !is.na(
 
 
 ## FILTERED
-filtered_table = readr::read_tsv('/Users/manzo/Downloads/Sample_centric_FILTERED.tsv')  %>%
-  dplyr::distinct() 
 filtered_table = filtered_table %>%
   dplyr::select(gene,locus, coding, contains("amino"), percent_frequency,
                 analysisName, workflowName) %>%
