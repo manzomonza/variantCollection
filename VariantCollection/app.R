@@ -1,6 +1,5 @@
 library(shiny)
-library(plotly)
-
+library(DT)
 ## SNV
 snv_table = readr::read_tsv('/Users/manzo/Downloads/Sample_centric_SNV.tsv')
 snv_table = snv_table %>% 
