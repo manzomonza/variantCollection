@@ -17,9 +17,10 @@ snv_parse <- function(snv_path){
   snv_table$percent_frequency = ifelse(snv_table$multiply_freq_by_100, snv_table$percent_frequency*100, snv_table$percent_frequency)
   snv_table = snv_table %>% dplyr::select(gene, locus, coding,
                                           one_AA, percent_frequency,
-                                          analysisName, workflowName, analysisDate)
+                                          analysisName, analysisDate,workflowName)
   snv_table = snv_table %>% dplyr::rename(one_AminoAcid_change = one_AA,
                                           gene_symbol = gene)
+  snv_table = snv_table %>% dplyr::filter(analysisDate != 'exon')
   snv_table = dplyr::distinct(snv_table)
   return(snv_table)
 }
@@ -42,9 +43,8 @@ cnv_parse <- function(cnv_path){
 filtered_parse <- function(filtered_path){
   filtered_table = readr::read_tsv(filtered_path)
   filtered_table = filtered_table %>%
-    dplyr::select(gene,locus, coding, contains("amino"), percent_frequency,
-                  analysisName, workflowName) %>%
-    dplyr::filter(!is.na(coding) & !is.na(amino_acid_change))
+    dplyr::select(gene,locus, coding, contains("amino"), percent_frequency,analysisName,analysisDate, workflowName)
+  filtered_table = filtered_table %>% dplyr::filter(!is.na(coding) & !is.na(amino_acid_change))
     filtered_table = dplyr::distinct(filtered_table)
   return(filtered_table)
 }
