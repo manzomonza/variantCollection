@@ -3,38 +3,15 @@ library(DT)
 
 source("SampleCentricTables_paths.R")
 
-## SNV
-snv_table = snv_table %>% 
-  dplyr::filter(multiply_freq_by_100 != "multiply_freq_by_100")
-snv_table$percent_frequency = as.numeric(snv_table$percent_frequency)
-snv_table$percent_frequency = ifelse(snv_table$multiply_freq_by_100, snv_table$percent_frequency*100, snv_table$percent_frequency)
-snv_table = snv_table %>% dplyr::select(gene, locus, coding,
-                                        one_AA, percent_frequency,
-                                        analysisName, workflowName, analysisDate)
-snv_table = snv_table %>% dplyr::rename(one_AminoAcid_change = one_AA,
-                                        gene_symbol = gene)
-snv_table = snv_table %>% dplyr::distinct()
-
-## CNV
-cnv_table = cnv_table %>%
-  dplyr::rename( gene_symbol = gene) %>%
-  dplyr::select(gene_symbol, locus, copy_number, contains("Percent"),analysisName, analysisDate, workflowName)
-
-cnv_table$fivePercent_conf = as.numeric(cnv_table$fivePercent_conf)
-cnv_table$ninetyfivePercent_conf = as.numeric(cnv_table$ninetyfivePercent_conf)
-
-cnv_table = cnv_table %>% dplyr::filter(!is.na(ninetyfivePercent_conf) & !is.na(fivePercent_conf))
-
-
-## FILTERED
-filtered_table = filtered_table %>%
-  dplyr::select(gene,locus, coding, contains("amino"), percent_frequency,
-                analysisName, workflowName) %>%
-  dplyr::filter(!is.na(coding) & !is.na(amino_acid_change))
-
+refreshtime = 3600000
 ### SHINY PART
 
 ui <- fluidPage(
+  titlePanel("Aggregation of detected variants, CNVs and filtered entries."),
+  fluidRow(
+    column(12,
+           p("Data is derived from watchdog folder entries in the respective cases."))
+  ),
   tabsetPanel(id = "tabs",
               tabPanel(value = "snv", title = "SNV",
                        DTOutput('snv')
@@ -47,8 +24,12 @@ ui <- fluidPage(
               )
   )
 )
-server <- function(input, output) {
-  output$snv <- renderDT(snv_table,
+server <- function(input, output , session) {
+  snvReader <- reactiveFileReader(refreshtime, session, snv_path, snv_parse)
+  cnvReader <- reactiveFileReader(refreshtime, session, cnv_path, cnv_parse)
+  filteredReader <- reactiveFileReader(refreshtime, session, filtered_path, filtered_parse)
+  
+  output$snv <- renderDT(snvReader(),
                          filter = "top",
                          extensions = 'Buttons',
                          options = list(dom = 'Blfrtip',
@@ -56,7 +37,7 @@ server <- function(input, output) {
                                         lengthMenu = list(c(10,25,-1),
                                                           c(10,25,"All")))
   )
-  output$cnv <- renderDT(cnv_table,
+  output$cnv <- renderDT(cnvReader(),
                          filter = "top",
                          extensions = 'Buttons',
                          options = list(dom = 'Blfrtip',
@@ -64,7 +45,7 @@ server <- function(input, output) {
                                         lengthMenu = list(c(10,25,-1),
                                                           c(10,25,"All")))
   )
-  output$filtered <- renderDT(filtered_table,
+  output$filtered <- renderDT(filteredReader(),
                               filter = "top",
                               extensions = 'Buttons',
                               options = list(dom = 'Blfrtip',
