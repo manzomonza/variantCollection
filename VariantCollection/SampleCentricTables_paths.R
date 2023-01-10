@@ -7,6 +7,7 @@
 snv_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_SNV.tsv'
 cnv_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_CNV.tsv'
 filtered_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_FILTERED.tsv'
+variant_ints_path =  '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Variant_interpretations.tsv'
 
 
 snv_parse <- function(snv_path){
@@ -39,7 +40,6 @@ cnv_parse <- function(cnv_path){
   return(cnv_table)
 }
 
-## FILTERED
 filtered_parse <- function(filtered_path){
   filtered_table = readr::read_tsv(filtered_path)
   filtered_table = filtered_table %>%
@@ -47,4 +47,15 @@ filtered_parse <- function(filtered_path){
   filtered_table = filtered_table %>% dplyr::filter(!is.na(coding) & !is.na(amino_acid_change))
     filtered_table = dplyr::distinct(filtered_table)
   return(filtered_table)
+}
+
+variant_interpretations_parse <- function(variant_ints_path){
+  variants = readr::read_tsv(variant_ints_path)
+  variants = variants %>% dplyr::filter(!is.na(COSMIC_n_total) | 
+                                        !is.na(COSMIC_n_tissue),
+                                        !is.na(BIMI_variant) | 
+                                        !is.na(Kommentar) | 
+                                        !is.na(tsgInfo) |
+                                        !is.na(cancerHotspot))
+  return(variants)
 }
