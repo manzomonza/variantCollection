@@ -58,6 +58,6 @@ variant_interpretations_parse <- function(variant_ints_path){
                                         !is.na(tsgInfo) |
                                         !is.na(cancerHotspot))
   #variants$gene = ifelse(is.na(variants$gene), variants$genes, variants$gene)
-  variants = variants %>% dplyr::select(gene, coding, one_AA, COSMIC_n_total, cancerHotspots, BIMI_variant, Kommentar )
+  variants = variants %>% dplyr::select(gene, coding, one_AA, COSMIC_n_total, cancerHotspot, BIMI_variant, Kommentar )
   return(variants)
 }
