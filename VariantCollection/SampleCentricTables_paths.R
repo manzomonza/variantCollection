@@ -3,6 +3,7 @@
 # snv_path = '/Users/manzo/Downloads/Sample_centric_SNV.tsv'
 # cnv_path = '/Users/manzo/Downloads/Sample_centric_CNV.tsv'
 # filtered_path = '/Users/manzo/Downloads/Sample_centric_FILTERED.tsv'
+# MP_CLINVAR_COSMIC_etc_annotated.tsv
 
 snv_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_SNV.tsv'
 cnv_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_CNV.tsv'
