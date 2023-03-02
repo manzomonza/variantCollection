@@ -32,7 +32,9 @@ server <- function(input, output , session) {
   cnvReader <- reactiveFileReader(refreshtime, session, cnv_path, cnv_parse)
   filteredReader <- reactiveFileReader(refreshtime, session, filtered_path, filtered_parse)
   variant_int_Reader <- reactiveFileReader(refreshtime, session, variant_ints_path, variant_interpretations_parse)
-  
+  mpvars_Reader <- reactiveFileReader(refreshtime, session, mp_variants_path, mpvars_parse)
+
+
   output$snv <- renderDT(snvReader(),
                          filter = "top",
                          extensions = 'Buttons',
@@ -64,6 +66,14 @@ server <- function(input, output , session) {
                                              buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
                                              lengthMenu = list(c(10,25,-1),
                                                                c(10,25,"All")))
+  )
+  output$mp_variants <- renderDT(mpvars_Reader(),
+                                  filter = "top",
+                                  extensions = 'Buttons',
+                                  options = list(dom = 'Blfrtip',
+                                                 buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                                                 lengthMenu = list(c(10,25,-1),
+                                                                   c(10,25,"All")))
   )
 }
 

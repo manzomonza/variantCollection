@@ -8,11 +8,18 @@ snv_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_SN
 cnv_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_CNV.tsv'
 filtered_path = '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Sample_centric_FILTERED.tsv'
 variant_ints_path =  '/mnt/NGS_Diagnostik/SampleCentricVariantCollection/Variant_interpretations.tsv'
+mp_variants_path = '/mnt/NGS_Diagnostik/Variant_annotation/MP_CLINVAR_COSMIC_etc_annotated.tsv'
+
+
+mpvars_parse <- function(mp_variants_path){
+  mp_variants = readr::read_tsv(mp_variants_path)
+  return(mp_variants)
+}
 
 
 snv_parse <- function(snv_path){
   snv_table = readr::read_tsv(snv_path)
-  snv_table = snv_table %>% 
+  snv_table = snv_table %>%
     dplyr::filter(multiply_freq_by_100 != "multiply_freq_by_100")
   snv_table$percent_frequency = as.numeric(snv_table$percent_frequency)
   snv_table$percent_frequency = ifelse(snv_table$multiply_freq_by_100, snv_table$percent_frequency*100, snv_table$percent_frequency)
@@ -31,10 +38,10 @@ cnv_parse <- function(cnv_path){
   cnv_table = cnv_table %>%
     dplyr::rename( gene_symbol = gene) %>%
     dplyr::select(gene_symbol, locus, copy_number, contains("Percent"),analysisName, analysisDate, workflowName)
-  
+
   cnv_table$fivePercent_conf = as.numeric(cnv_table$fivePercent_conf)
   cnv_table$ninetyfivePercent_conf = as.numeric(cnv_table$ninetyfivePercent_conf)
-  
+
   cnv_table = cnv_table %>% dplyr::filter(!is.na(ninetyfivePercent_conf) & !is.na(fivePercent_conf))
   cnv_table = dplyr::distinct(cnv_table)
   return(cnv_table)
@@ -51,10 +58,10 @@ filtered_parse <- function(filtered_path){
 
 variant_interpretations_parse <- function(variant_ints_path){
   variants = readr::read_tsv(variant_ints_path)
-  variants = variants %>% dplyr::filter(!is.na(COSMIC_n_total) | 
+  variants = variants %>% dplyr::filter(!is.na(COSMIC_n_total) |
                                         !is.na(COSMIC_n_tissue),
-                                        !is.na(BIMI_variant) | 
-                                        !is.na(Kommentar) | 
+                                        !is.na(BIMI_variant) |
+                                        !is.na(Kommentar) |
                                         !is.na(tsgInfo) |
                                         !is.na(cancerHotspot))
   #variants$gene = ifelse(is.na(variants$gene), variants$genes, variants$gene)
