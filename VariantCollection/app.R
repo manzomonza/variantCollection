@@ -24,6 +24,9 @@ ui <- fluidPage(
               ),
               tabPanel(value = "variants_int", title = "Variant Interpretations",
                        DTOutput("variants_int")
+              ),
+              tabPanel(value = "mp_variants", title = "MP Variants",
+                       DTOutput("mp_variants")
               )
   )
 )
